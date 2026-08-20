@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#1F6F6B" />
+<meta name="description" content="Registro pessoal offline para acompanhamento de redução gradual de escitalopram." />
+<title>Acompanhamento — Desmame</title>
+<link rel="icon" href="icons/icon-192.png" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<div id="modal-overlay" class="modal-overlay hidden">
+  <div id="modal-box" class="modal-box" role="dialog" aria-modal="true">
+    <p id="modal-message"></p>
+    <div id="modal-input-wrap" class="modal-input-wrap hidden"></div>
+    <div class="modal-actions">
+      <button id="modal-cancel" class="btn btn-ghost">Cancelar</button>
+      <button id="modal-confirm" class="btn btn-primary">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<header class="app-header">
+  <button id="btn-back" class="btn-back hidden" aria-label="Voltar">←</button>
+  <h1 id="screen-title">Acompanhamento</h1>
+</header>
+
+<main id="app-main">
+
+  <!-- ================= TELA: ACOMPANHAMENTO (HOME) ================= -->
+  <section id="screen-home" class="screen active">
+    <div class="card highlight-card">
+      <div class="highlight-row">
+        <div class="highlight-item">
+          <span class="highlight-label">Dose atual</span>
+          <span id="home-dose" class="highlight-value">—</span>
+        </div>
+        <div class="highlight-item">
+          <span class="highlight-label">Tempo na dose</span>
+          <span id="home-days" class="highlight-value">—</span>
+        </div>
+      </div>
+      <div class="highlight-row">
+        <div class="highlight-item">
+          <span class="highlight-label">Início da etapa</span>
+          <span id="home-start" class="highlight-value-sm">—</span>
+        </div>
+        <div class="highlight-item">
+          <span class="highlight-label">Redução da etapa anterior</span>
+          <span id="home-reduction" class="highlight-value-sm">—</span>
+        </div>
+      </div>
+      <div class="highlight-row">
+        <div class="highlight-item full">
+          <span class="highlight-label">Último registro</span>
+          <span id="home-last-record" class="highlight-value-sm">—</span>
+        </div>
+      </div>
+    </div>
+
+    <button id="btn-new-record" class="btn btn-primary btn-block btn-lg">+ Novo registro de hoje</button>
+
+    <h2 class="section-title">Registros recentes</h2>
+    <div id="home-recent-list" class="recent-list"></div>
+  </section>
+
+  <!-- ================= TELA: REGISTRO DIÁRIO ================= -->
+  <section id="screen-record" class="screen">
+    <form id="record-form">
+
+      <div class="field-block">
+        <label for="record-date">Data do registro</label>
+        <input type="date" id="record-date" required />
+        <p id="record-date-warning" class="field-warning hidden"></p>
+      </div>
+
+      <div class="field-block">
+        <label for="record-dose">Qual dose de escitalopram você tomou no dia anterior? (mg)</label>
+        <input type="number" id="record-dose" step="0.01" min="0" required inputmode="decimal" />
+      </div>
+
+      <fieldset class="scale-field" data-field="humor">
+        <legend>Humor deprimido</legend>
+        <div class="scale-options" data-scale="humor"></div>
+        <div class="subquestion">
+          <label>A tristeza teve uma causa ou situação identificável hoje?</label>
+          <div class="toggle-group" data-toggle="tristezaCausaIdentificavel">
+            <button type="button" class="toggle-btn" data-value="false">Não</button>
+            <button type="button" class="toggle-btn" data-value="true">Sim</button>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="scale-field" data-field="ansiedade">
+        <legend>Ansiedade</legend>
+        <div class="scale-options" data-scale="ansiedade"></div>
+      </fieldset>
+
+      <fieldset class="scale-field" data-field="energia">
+        <legend>Energia / disposição</legend>
+        <div class="scale-options" data-scale="energia"></div>
+      </fieldset>
+
+      <fieldset class="scale-field" data-field="sono">
+        <legend>Problemas de sono</legend>
+        <div class="scale-options" data-scale="sono"></div>
+      </fieldset>
+
+      <fieldset class="scale-field" data-field="interesse">
+        <legend>Interesse e prazer</legend>
+        <div class="scale-options" data-scale="interesse"></div>
+      </fieldset>
+
+      <fieldset class="scale-field" data-field="irritabilidade">
+        <legend>Irritabilidade</legend>
+        <div class="scale-options" data-scale="irritabilidade"></div>
+      </fieldset>
+
+      <fieldset class="scale-field" data-field="raciocinio">
+        <legend>Capacidade de raciocínio</legend>
+        <div class="scale-options" data-scale="raciocinio"></div>
+      </fieldset>
+
+      <fieldset class="symptoms-field">
+        <legend>Sintomas observados</legend>
+        <div id="symptoms-list" class="symptoms-list"></div>
+        <div class="field-block">
+          <label for="outros-sintomas-texto">Outros sintomas</label>
+          <textarea id="outros-sintomas-texto" rows="2" placeholder="Descreva, se houver"></textarea>
+        </div>
+      </fieldset>
+
+      <div class="field-block">
+        <label for="situacoes-texto">Situações e acontecimentos do dia</label>
+        <p class="field-hint">Relate acontecimentos que possam ter influenciado seu humor, ansiedade, irritabilidade ou estresse. Exemplos: problemas no trabalho, conflitos, problemas financeiros, acontecimentos positivos, mudanças na rotina, exercícios etc.</p>
+        <textarea id="situacoes-texto" rows="4"></textarea>
+      </div>
+
+      <fieldset class="safety-field">
+        <legend>Segurança</legend>
+        <label class="safety-question">Você teve pensamentos de se machucar ou de que não gostaria de estar vivo hoje?</label>
+        <div class="toggle-group" data-toggle="seguranca">
+          <button type="button" class="toggle-btn" data-value="false">Não</button>
+          <button type="button" class="toggle-btn" data-value="true">Sim</button>
+        </div>
+        <div id="safety-help-message" class="safety-help hidden">
+          Se você teve esse tipo de pensamento, procure ajuda profissional imediatamente. Se houver risco iminente, ligue para o Serviço de Emergência (192/193) ou para o Centro de Valorização da Vida (188, disponível 24h). Você não precisa lidar com isso sozinho(a).
+        </div>
+      </fieldset>
+
+      <div class="form-actions">
+        <button type="button" id="btn-cancel-record" class="btn btn-ghost btn-block">Cancelar</button>
+        <button type="submit" class="btn btn-primary btn-block btn-lg">Salvar registro</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- ================= TELA: HISTÓRICO ================= -->
+  <section id="screen-history" class="screen">
+    <div class="table-scroll">
+      <table id="history-table" class="history-table">
+        <thead>
+          <tr>
+            <th data-sort="date">Data ▾</th>
+            <th>Dose</th>
+            <th>Humor</th>
+            <th>Ansied.</th>
+            <th>Energia</th>
+            <th>Sono</th>
+            <th>Interesse</th>
+            <th>Irrit.</th>
+            <th>Raciocínio</th>
+            <th>Índice</th>
+            <th>Sint. retirada</th>
+          </tr>
+        </thead>
+        <tbody id="history-tbody"></tbody>
+      </table>
+    </div>
+    <p id="history-empty" class="empty-state hidden">Nenhum registro ainda. Toque em "Novo registro" na tela inicial para começar.</p>
+  </section>
+
+  <!-- ================= TELA: EVOLUÇÃO ================= -->
+  <section id="screen-evolution" class="screen">
+    <div class="field-block">
+      <label for="evolution-series-select">Série exibida</label>
+      <select id="evolution-series-select">
+        <option value="humor">Humor deprimido</option>
+        <option value="ansiedade">Ansiedade</option>
+        <option value="energia">Energia / disposição</option>
+        <option value="sono">Problemas de sono</option>
+        <option value="interesse">Interesse e prazer</option>
+        <option value="irritabilidade">Irritabilidade</option>
+        <option value="raciocinio">Capacidade de raciocínio</option>
+        <option value="indiceMental" selected>Índice diário de estado mental</option>
+        <option value="indiceRetirada">Índice de sintomas de retirada</option>
+      </select>
+    </div>
+    <div id="evolution-chart" class="chart-container"></div>
+    <div id="evolution-dose-band" class="chart-container dose-band"></div>
+    <p class="chart-note">Toque em um ponto do gráfico ou em um segmento da faixa de dose para ver detalhes.</p>
+    <p id="evolution-empty" class="empty-state hidden">Ainda não há dados suficientes para exibir o gráfico.</p>
+  </section>
+
+  <!-- ================= TELA: ETAPAS ================= -->
+  <section id="screen-stages" class="screen">
+    <button id="btn-new-stage" class="btn btn-primary btn-block">+ Nova etapa</button>
+    <div id="stages-list" class="stages-list"></div>
+    <p id="stages-empty" class="empty-state hidden">Nenhuma etapa cadastrada ainda.</p>
+  </section>
+
+  <!-- ================= TELA: NOVA/EDITAR ETAPA ================= -->
+  <section id="screen-stage-form" class="screen">
+    <form id="stage-form">
+      <div class="field-block">
+        <label for="stage-start-date">Data de início</label>
+        <input type="date" id="stage-start-date" required />
+      </div>
+      <div class="field-block">
+        <label for="stage-previous-dose">Dose anterior (mg)</label>
+        <input type="number" id="stage-previous-dose" step="0.01" min="0" inputmode="decimal" />
+      </div>
+      <div class="field-block">
+        <label for="stage-dose">Dose diária desta etapa (mg)</label>
+        <input type="number" id="stage-dose" step="0.01" min="0.01" required inputmode="decimal" />
+      </div>
+      <div class="field-block">
+        <label for="stage-percent">Percentual de redução (%)</label>
+        <input type="number" id="stage-percent" step="0.1" inputmode="decimal" placeholder="Calculado automaticamente" />
+        <p class="field-hint">Calculado automaticamente a partir da dose anterior e da nova dose. Você pode corrigir manualmente se necessário.</p>
+      </div>
+      <div class="field-block">
+        <label for="stage-note">Observação (opcional)</label>
+        <textarea id="stage-note" rows="3"></textarea>
+      </div>
+      <div class="form-actions">
+        <button type="button" id="btn-cancel-stage" class="btn btn-ghost btn-block">Cancelar</button>
+        <button type="submit" class="btn btn-primary btn-block btn-lg">Salvar etapa</button>
+      </div>
+      <button type="button" id="btn-delete-stage" class="btn btn-danger btn-block hidden">Excluir etapa</button>
+    </form>
+  </section>
+
+  <!-- ================= TELA: CALENDÁRIO ================= -->
+  <section id="screen-calendar" class="screen">
+    <div class="calendar-nav">
+      <button id="cal-prev" class="btn btn-ghost" aria-label="Mês anterior">‹</button>
+      <span id="cal-month-label" class="calendar-month-label"></span>
+      <button id="cal-next" class="btn btn-ghost" aria-label="Próximo mês">›</button>
+    </div>
+    <div id="calendar-grid" class="calendar-grid"></div>
+    <div class="calendar-legend">
+      <span><i class="legend-dot legend-has-record"></i> Com registro</span>
+      <span><i class="legend-dot legend-no-record"></i> Sem registro</span>
+      <span><i class="legend-dot legend-today"></i> Hoje</span>
+    </div>
+  </section>
+
+  <!-- ================= TELA: MAIS (dados/config/privacidade) ================= -->
+  <section id="screen-more" class="screen">
+    <h2 class="section-title">Desmame</h2>
+    <div class="card">
+      <button id="btn-open-stages" class="btn btn-secondary btn-block">Etapas de dose</button>
+    </div>
+
+    <h2 class="section-title">Dados</h2>
+    <p class="field-hint">Os dados ficam salvos apenas neste celular. Nenhum armazenamento em navegador é 100% à prova de perda (o sistema pode limpá-lo em casos raros de pouco espaço). Exporte um backup periodicamente para se proteger.</p>
+    <div class="card">
+      <button id="btn-export-json" class="btn btn-secondary btn-block">Exportar backup (JSON)</button>
+      <button id="btn-export-csv" class="btn btn-secondary btn-block">Exportar para Excel (CSV)</button>
+      <label for="import-file-input" class="btn btn-secondary btn-block file-label">Importar backup (JSON)</label>
+      <input type="file" id="import-file-input" accept="application/json" class="hidden" />
+    </div>
+
+    <h2 class="section-title">Dose sugerida no formulário</h2>
+    <div class="card field-block">
+      <label for="settings-default-dose">Dose padrão a sugerir no registro diário (mg)</label>
+      <input type="number" id="settings-default-dose" step="0.01" min="0" inputmode="decimal" />
+    </div>
+
+    <h2 class="section-title">Aparência</h2>
+    <div class="card field-block">
+      <label for="settings-theme">Tema</label>
+      <select id="settings-theme">
+        <option value="system">Automático (sistema)</option>
+        <option value="light">Claro</option>
+        <option value="dark">Escuro</option>
+      </select>
+    </div>
+
+    <h2 class="section-title">Privacidade</h2>
+    <div class="card">
+      <p class="privacy-text">
+        Todos os dados deste aplicativo são armazenados exclusivamente neste dispositivo, em uma base de dados local (IndexedDB). Não há envio de dados para servidores, não há uso de serviços de terceiros, análise de uso (analytics) ou publicidade. Depois de instalado, o aplicativo funciona inteiramente offline.
+      </p>
+    </div>
+
+    <h2 class="section-title">Sobre</h2>
+    <div class="card">
+      <p class="privacy-text">
+        Esta é uma ferramenta pessoal de registro e acompanhamento. Ela não diagnostica, não avalia risco e não recomenda doses ou reduções. Todas as decisões sobre o tratamento devem ser tomadas com acompanhamento profissional.
+      </p>
+    </div>
+
+    <button id="btn-clear-data" class="btn btn-danger btn-block">Apagar todos os dados</button>
+  </section>
+
+</main>
+
+<nav class="bottom-nav">
+  <button class="nav-btn active" data-screen="home" aria-label="Acompanhamento">
+    <span class="nav-icon">🏠</span><span class="nav-label">Início</span>
+  </button>
+  <button class="nav-btn" data-screen="history" aria-label="Histórico">
+    <span class="nav-icon">📋</span><span class="nav-label">Histórico</span>
+  </button>
+  <button class="nav-btn" data-screen="evolution" aria-label="Evolução">
+    <span class="nav-icon">📈</span><span class="nav-label">Evolução</span>
+  </button>
+  <button class="nav-btn" data-screen="calendar" aria-label="Calendário">
+    <span class="nav-icon">📅</span><span class="nav-label">Calend.</span>
+  </button>
+  <button class="nav-btn" data-screen="more" aria-label="Mais">
+    <span class="nav-icon">⋯</span><span class="nav-label">Mais</span>
+  </button>
+</nav>
+
+<script src="db.js"></script>
+<script src="calc.js"></script>
+<script src="stages.js"></script>
+<script src="charts.js"></script>
+<script src="export.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
